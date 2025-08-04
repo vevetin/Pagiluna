@@ -16,29 +16,6 @@ void exibirLivro(Livro livro) {
     printf("\n");
 }
 
-// funcao auxiliar para encontrar o menor no da subarvore
-NoBST *encontrarMinimo(NoBST *no) {
-    while (no->esquerda != NULL) 
-        no = no->esquerda;
-    return no;
-}
-
-NoBST *buscarBST(NoBST *raiz, tipoT busca) {
-    if(raiz == NULL || igual(busca, chave(raiz->item))) 
-        return raiz;   
-    
-    if(menor(busca, chave(raiz->item))) return buscarBST(raiz->esquerda, busca);
-    else return buscarBST(raiz->direita, busca);
-}
-
-void liberarArvore(NoBST *raiz) {
-    if (raiz != NULL) {
-        liberarArvore(raiz->esquerda);
-        liberarArvore(raiz->direita);
-        free(raiz);
-    }
-}
-
 /*Funcoes de Criacao e Insercao*/
 Livro criarLivro() {
     static int quantidade = 0; // variavel estatica para gerar chaves unicas
@@ -71,58 +48,6 @@ Livro criarLivro() {
 
     novoLivro.chave = quantidade++;
     return novoLivro;
-}
-
-NoBST *novoNo(Livro novoLivro, NoBST *esquerda, NoBST *direita) {
-    NoBST *no = malloc(sizeof(NoBST));
-    no->esquerda = esquerda;
-    no->direita = direita;
-    no->item = novoLivro;
-    return no;
-}
-
-NoBST *inserirNo(NoBST *raiz, NoBST *novo) {
-    if (raiz == NULL) return novo;
-    if (raiz->item.chave > novo->item.chave)
-        raiz->esquerda = inserirNo(raiz->esquerda, novo);
-    else
-        raiz->direita = inserirNo(raiz->direita, novo);
-    return raiz;
-}
-
-/*Funcoes de Edicao e Exclusao*/
-NoBST *editarNo(NoBST *raiz, Livro livroAtualizado) {
-    NoBST *no = buscarBST(raiz, livroAtualizado.chave);
-    if(no != NULL) no->item = livroAtualizado;
-    return raiz;
-}
-
-NoBST *excluirNo(NoBST *raiz, tipoT excluir) {
-    if(raiz == NULL) return NULL; // se a arvore estiver vazia, nao ha o que excluir 
-    if(menor(excluir, chave(raiz->item))) 
-        raiz->esquerda = excluirNo(raiz->esquerda, excluir);
-    else if(menor(chave(raiz->item), excluir)) 
-        raiz->direita = excluirNo(raiz->direita, excluir);
-    else {
-        // caso o no tenha apenas um ou nenhum filho
-        if(raiz->esquerda == NULL) {
-            NoBST *temp = raiz->direita;
-            free(raiz);
-            return temp;
-        } 
-        
-        else if(raiz->direita == NULL) {
-            NoBST *temp = raiz->esquerda;
-            free(raiz);
-            return temp;
-        }
-        
-        // caso o no tenha dois filhos
-        NoBST *temp = encontrarMinimo(raiz->direita);
-        raiz->item = temp->item;
-        raiz->direita = excluirNo(raiz->direita, chave(temp->item));
-    }
-    return raiz;
 }
 
 /*Funcoes de Busca*/
@@ -164,46 +89,52 @@ void buscarLivro(NoBST *catalogo) {
         for (int i = 0; i < total; i++)
             exibirLivro(resultados[i].item);
         
-        printf("Digite a chave do livro que deseja editar ou excluir: ");
-        scanf("%d", &escolha);
+        printf("Deseja editar ou excluir algum livro? (1-Sim / 0-Nao): ");
+        scanf("%d", &opcao);
         getchar();
 
-        NoBST *no = buscarBST(catalogo, escolha);
-        if (no == NULL) {
-            printf("Livro nao encontrado\n");
-            return;
-        }
+        if (opcao == 1) {
+            printf("Digite a chave do livro que deseja editar ou excluir: ");
+            scanf("%d", &escolha);
+            getchar();
 
-        printf("1. Editar Livro\n");
-        printf("2. Excluir Livro\n");
-        printf("0. Voltar ao menu principal\n");
-        printf("Escolha uma opcao: ");
-        scanf("%d", &opcao);
-        getchar(); 
-        switch (opcao) {
-            case 1: {
-                // Editar Livro
-                Livro livroAtualizado = criarLivro();
-                livroAtualizado.chave = escolha;  
-                catalogo = editarNo(catalogo, livroAtualizado);
-                printf("Livro atualizado com sucesso!\n");
-                break;
+            NoBST *no = buscarBST(catalogo, escolha);
+            if (no == NULL) {
+                printf("Livro nao encontrado\n");
+                free(resultados);
+                return;
             }
-            case 2: {
-                // Excluir Livro
-                catalogo = excluirNo(catalogo, escolha);
-                printf("Livro excluido com sucesso!\n");
-                break;
+
+            printf("1. Editar Livro\n");
+            printf("2. Excluir Livro\n");
+            printf("0. Voltar ao menu principal\n");
+            printf("Escolha uma opcao: ");
+            scanf("%d", &opcao);
+            getchar(); 
+            switch (opcao) {
+                case 1: {
+                    Livro livroAtualizado = criarLivro();
+                    livroAtualizado.chave = escolha;  
+                    catalogo = editarNo(catalogo, livroAtualizado);
+                    printf("Livro atualizado com sucesso!\n");
+                    break;
+                }
+                case 2: {
+                    catalogo = excluirNo(catalogo, escolha);
+                    printf("Livro excluido com sucesso!\n");
+                    break;
+                }
+                case 0:
+                    printf("Voltando ao menu principal...\n");
+                    break;
+                default:
+                    printf("Opcao invalida!\n");
             }
-            case 0:
-                printf("Voltando ao menu principal...\n");
-                break;
-            default:
-                printf("Opcao invalida!\n");
-        }
-        
-    } 
-    
+        } 
+
+        else printf("Voltando ao menu principal sem alterações.\n");
+    }
+     
     else printf("Nenhum livro encontrado\n");
     free(resultados); 
 }
@@ -215,6 +146,12 @@ void imprimirCatalogo(NoBST *raiz) {
         exibirLivro(raiz->item);
         imprimirCatalogo(raiz->direita);
     }
+}
 
-    else printf("catalogo vazio\n");
+void imprimirCatalogoCompleto(NoBST *raiz) {
+   if (raiz == NULL) {
+        printf("catalogo vazio\n");
+        return;
+    }
+    imprimirCatalogo(raiz);
 }

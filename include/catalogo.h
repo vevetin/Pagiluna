@@ -25,7 +25,7 @@ typedef struct No {
 //funcoes para manipulacao e gerenciamento do catalogo de livros
 Livro criarLivro(); //cria um livro com os dados inseridos pelo usuario
 void buscarLivro(NoBST *raiz); //busca um livro e exibe os dados
-void imprimirCatalogo(NoBST *raiz); //imprime o catalogo de livros
+void imprimirCatalogoCompleto(NoBST *raiz); //imprime o catalogo de livros
 void liberarArvore(NoBST *raiz); //libera a memoria alocada para a arvore
 
 #endif
